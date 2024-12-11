@@ -14,7 +14,7 @@ This project allows you to upload images and apply various transformations, such
 - **Live Preview:** Automatically reprocess the image as you change settings.
 
 ## Usage
-1. Open the [GitHub Pages link](https://yourusername.github.io/image-grayscale-inverter/) in your browser.
+1. Open the [GitHub Pages link](https://Cr4nkyBobbyHD.github.io/Image-Grayscale-Inverter/) in your browser.
 2. Click **"Choose Files"** and select one or more images from your computer.
 3. Adjust the controls (tolerance, threshold, pre-processing filters) as desired.
 4. If Live Preview is on, changes appear automatically. Otherwise, click **"Apply Changes"**.
