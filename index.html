@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Image Grayscale-Inverter</title>
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+    <h1>Advanced Image Grayscale-Inverter</h1>
+
+    <div class="top-controls">
+        <input type="file" id="fileInput" accept="image/*" multiple />
+        <input type="button" id="batchDownloadBtn" value="Download All as ZIP" style="display:none;" />
+        <input type="button" id="applyChangesBtn" value="Apply Changes" style="display:none;" />
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <h2>Grayscale Tolerance</h2>
+            <label>
+                Tolerance: <span id="toleranceValue">5</span>
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Determines how strictly a pixel must have equal R,G,B
+                        to be considered grayscale. Lower = stricter, higher = more lenient.
+                    </span>
+                </span>
+                <input type="range" id="toleranceRange" min="0" max="50" value="5" />
+            </label>
+        </div>
+
+        <div class="control-group">
+            <h2>Threshold Mode</h2>
+            <label>
+                <input type="checkbox" id="thresholdMode" />
+                Enable Threshold Mode
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Turns grayscale pixels into pure black or white based on the threshold.
+                    </span>
+                </span>
+            </label>
+
+            <label id="thresholdContainer">
+                Threshold: <span id="thresholdValue">128</span>
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Adjust to control what is considered 'light' or 'dark'.
+                        Lower = more white, higher = more black.
+                    </span>
+                </span>
+                <input type="range" id="thresholdRange" min="0" max="255" value="128" />
+            </label>
+
+            <label>
+                Adaptive Threshold:
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Automatically compute the threshold (Otsu's) or use a custom one.
+                    </span>
+                </span>
+                <select id="adaptiveThresholdSelect">
+                    <option value="custom">Custom</option>
+                    <option value="otsu">Otsu's Method</option>
+                </select>
+            </label>
+        </div>
+
+
+        <div class="control-group">
+            <h2>Pre-Processing</h2>
+            <label>
+                <input type="checkbox" id="convertToGray" />
+                Convert Entire Image to Grayscale First
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Makes the image grayscale before thresholding or inversion, ensuring more consistent results.
+                    </span>
+                </span>
+            </label>
+            <label>
+                <input type="checkbox" id="applyBlur" />
+                Apply a Light Blur
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Smooths the image to reduce noise, yielding cleaner edges.
+                    </span>
+                </span>
+            </label>
+            <label>
+                Brightness: <span id="brightnessValue">0</span>
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Increase or decrease overall image brightness.
+                    </span>
+                </span>
+                <input type="range" id="brightnessRange" min="-100" max="100" value="0" />
+            </label>
+            <label>
+                Contrast: <span id="contrastValue">0</span>
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Adjust the difference between lights and darks.
+                    </span>
+                </span>
+                <input type="range" id="contrastRange" min="-100" max="100" value="0" />
+            </label>
+            <label>
+                Gamma: <span id="gammaValue">1.0</span>
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Non-linear brightness correction. Values <1 brighten mid-tones,>1 darken them.
+                    </span>
+                </span>
+                <input type="range" id="gammaRange" min="0.1" max="3" step="0.1" value="1.0" />
+            </label>
+            <label>
+                <input type="checkbox" id="applySharpen" />
+                Apply Sharpening
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Sharpens edges to make details clearer.
+                    </span>
+                </span>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <h2>Transparency</h2>
+            <label>
+                <input type="checkbox" id="makeTransparent" />
+                Enable Transparency
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Makes either black or white pixels transparent after processing.
+                    </span>
+                </span>
+            </label>
+            <label>
+                <input type="radio" name="transColor" value="black" checked />
+                Black Pixels Transparent
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Black processed pixels become transparent.
+                    </span>
+                </span>
+            </label>
+            <label>
+                <input type="radio" name="transColor" value="white" />
+                White Pixels Transparent
+                <span class="info-button">?
+                    <span class="tooltip">
+                        White processed pixels become transparent.
+                    </span>
+                </span>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <h2>Live Preview</h2>
+            <label>
+                <input type="checkbox" id="livePreview" />
+                Enable Live Preview
+                <span class="info-button">?
+                    <span class="tooltip">
+                        Automatically reprocess images as you adjust settings. Might be laggy on large images.
+                    </span>
+                </span>
+            </label>
+        </div>
+    </div>
+
+    <div class="loading-text" id="loadingText" style="display:none;">
+        Processing images, please wait...
+    </div>
+
+    <div id="imagesContainer"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script type="module" src="js/core.js"></script>
+    <script type="module" src="js/filters.js"></script>
+    <script type="module" src="js/ui.js"></script>
+    <script type="module" src="js/download.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
