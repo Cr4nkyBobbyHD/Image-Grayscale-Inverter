@@ -13,7 +13,7 @@ This project allows you to upload images and apply various transformations, such
 - **Transparency:** Make all black or white pixels transparent after processing, while preserving original non-grayscale colors as opaque.
 - **Live Preview:** Automatically reprocess the image as you change settings.
 - **Ctrl+V Functionality** Just press Ctrl+V and the Image in your Clipboard will be loaded.
-- ***Copy to Clipboard** Press the Copy to Clipboard button to Copy the Image to your Clipboard. 
+- **Copy to Clipboard** Press the Copy to Clipboard button to Copy the Image to your Clipboard. 
  
 ## Usage
 1. Open the [GitHub Pages link](https://Cr4nkyBobbyHD.github.io/Image-Grayscale-Inverter/) in your browser.
