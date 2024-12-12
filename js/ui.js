@@ -10,7 +10,6 @@ const applyChangesBtn = document.getElementById('applyChangesBtn');
 const imagesContainer = document.getElementById('imagesContainer');
 const loadingText = document.getElementById('loadingText');
 
-// Existing controls
 const toleranceRange = document.getElementById('toleranceRange');
 const toleranceValue = document.getElementById('toleranceValue');
 const thresholdMode = document.getElementById('thresholdMode');
@@ -22,7 +21,6 @@ const makeTransparent = document.getElementById('makeTransparent');
 const adaptiveThresholdSelect = document.getElementById('adaptiveThresholdSelect');
 const thresholdContainer = document.getElementById('thresholdContainer');
 
-// New controls
 const brightnessRange = document.getElementById('brightnessRange');
 const brightnessValue = document.getElementById('brightnessValue');
 const contrastRange = document.getElementById('contrastRange');
@@ -34,7 +32,6 @@ const livePreview = document.getElementById('livePreview');
 
 let originalImages = [];
 
-// Update displayed slider values on input
 toleranceRange.addEventListener('input', () => {
     toleranceValue.textContent = toleranceRange.value;
     triggerLiveUpdate();
@@ -56,7 +53,6 @@ gammaRange.addEventListener('input', () => {
     triggerLiveUpdate();
 });
 
-// Checkboxes and select changes
 thresholdMode.addEventListener('change', () => {
     updateThresholdUI();
     triggerLiveUpdate();
@@ -70,11 +66,9 @@ adaptiveThresholdSelect.addEventListener('change', () => {
     triggerLiveUpdate();
 });
 livePreview.addEventListener('change', () => {
-    // If enabling live preview, reprocess immediately
     if (livePreview.checked) {
         reprocessImages();
     } else {
-        // If disabling live preview, ensure "Apply Changes" button reappears
         applyChangesBtn.style.display = 'inline-block';
     }
 });
@@ -116,14 +110,12 @@ function triggerLiveUpdate() {
         if (livePreviewTimeout) {
             clearTimeout(livePreviewTimeout);
         }
-        // small debounce (300ms)
         livePreviewTimeout = setTimeout(() => {
             reprocessImages();
         }, 300);
     }
 }
 
-// Called to reprocess images with current options
 export function reprocessImages() {
     if (originalImages.length === 0) return;
     const options = {
@@ -165,12 +157,33 @@ function updateUI(state, payload) {
                 link.click();
             });
 
+            // Add "Copy to Clipboard" button
+            const copyToClipboardBtn = document.createElement('button');
+            copyToClipboardBtn.className = 'download-btn';
+            copyToClipboardBtn.textContent = 'Copy to Clipboard';
+            copyToClipboardBtn.addEventListener('click', async () => {
+                try {
+                    res.canvas.toBlob(async (blob) => {
+                        if (!blob) {
+                            alert('Failed to copy image.');
+                            return;
+                        }
+                        const item = new ClipboardItem({ [blob.type]: blob });
+                        await navigator.clipboard.write([item]);
+                        alert('Image copied to clipboard!');
+                    });
+                } catch (err) {
+                    console.error(err);
+                    alert('Failed to write to clipboard. Possibly unsupported browser or permissions denied.');
+                }
+            });
+
             block.appendChild(res.canvas);
             block.appendChild(perImageDownloadBtn);
+            block.appendChild(copyToClipboardBtn);
             imagesContainer.appendChild(block);
         });
         batchDownloadBtn.style.display = 'inline-block';
-        // If live preview is on, hide apply button; if off, show apply button
         applyChangesBtn.style.display = livePreview.checked ? 'none' : 'inline-block';
     } else if (state === 'preprocess') {
         const {ctx, width, height, options} = payload;
@@ -193,12 +206,9 @@ function updateUI(state, payload) {
 }
 
 function updateThresholdUI() {
-    // If adaptiveMethod = "otsu", hide the threshold slider
-    // If adaptiveMethod = "custom", show the threshold slider
     const method = adaptiveThresholdSelect.value;
     const shouldShow = (method === 'custom' && thresholdMode.checked);
 
-    // If thresholdMode is off, threshold slider pointless, hide as well
     if (shouldShow) {
         thresholdContainer.style.display = 'block';
     } else {
@@ -206,7 +216,6 @@ function updateThresholdUI() {
     }
 }
 
-// Reset UI to defaults on page load
 function resetUIToDefaults() {
     toleranceRange.value = 5; toleranceValue.textContent = '5';
     thresholdMode.checked = false;
@@ -223,12 +232,43 @@ function resetUIToDefaults() {
     livePreview.checked = false;
 
     updateThresholdUI();
-    // Since no images are loaded yet, no reprocess needed here.
 }
 
-// Call resetUIToDefaults when page loads
 window.addEventListener('load', resetUIToDefaults);
 
 export function getImages() {
     return originalImages;
 }
+
+// Add paste event listener for Ctrl+V
+document.addEventListener('paste', (e) => {
+    // Check if there's an image in the clipboard
+    const items = e.clipboardData.items;
+    let imageFound = false;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+            imageFound = true;
+            const file = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                // Replace current images with this single pasted image
+                originalImages = [{
+                    dataURL: event.target.result,
+                    filename: 'pasted_image.png'
+                }];
+                imagesContainer.innerHTML = '';
+                batchDownloadBtn.style.display = 'none';
+                applyChangesBtn.style.display = 'none';
+                reprocessImages();
+            };
+            reader.readAsDataURL(file);
+            break;
+        }
+    }
+
+    if (!imageFound) {
+        console.log('No image found in clipboard.');
+        // You could alert the user, but silently ignoring is also fine.
+    }
+});
