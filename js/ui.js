@@ -181,7 +181,17 @@ function updateUI(state, payload) {
     loadingText.style.display = payload ? "block" : "none";
   } else if (state === "result") {
     const results = payload;
-    imagesContainer.innerHTML = "";
+    imagesContainer.innerHTML = `<div class="live-preview flex-gap">
+            <input type="checkbox" id="livePreview" />
+            <label class="checkbox-radio-label" for="livePreview">
+                Enable Live Preview
+            </label>
+            <span class="info-button"
+                title="Automatically reprocess images as you adjust settings. Might be laggy on large images.">
+                ?
+            </span>
+        </div>
+    `;
     results.forEach((res) => {
       const block = document.createElement("div");
       block.className = "image-block";
@@ -226,9 +236,7 @@ function updateUI(state, payload) {
       imagesContainer.appendChild(block);
     });
     batchDownloadBtn.style.display = "inline-block";
-    applyChangesBtn.style.display = livePreview.checked
-      ? "none"
-      : "inline-block";
+    applyChangesBtn.style.display = livePreview.checked ? "none" : "inline-block";
   } else if (state === "preprocess") {
     const { ctx, width, height, options } = payload;
 
@@ -447,7 +455,7 @@ function applyProfileSettings(profileData) {
 
 // Dropdown aktualisieren
 function updateProfileSelect() {
-  profileSelect.innerHTML = '<option value="">-- bitte wählen --</option>';
+  profileSelect.innerHTML = '<option value="">-- please choose --</option>';
   const storedString = localStorage.getItem("imageProfiles");
   if (!storedString) return;
   const allProfiles = JSON.parse(storedString);
