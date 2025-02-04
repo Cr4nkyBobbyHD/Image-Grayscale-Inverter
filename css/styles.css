@@ -11,7 +11,9 @@
 body {
     background: var(--background);
     color: var(--text);
-    font-family: "Segoe UI", system-ui, sans-serif;
+    font-family: "Varela Round", serif;
+    font-weight: 400;
+    font-style: normal;
     padding: 20px;
     line-height: 1.6;
 }
@@ -234,6 +236,28 @@ input[type="range"]::-webkit-slider-thumb:hover {
     background: var(--primary);
 }
 
+.buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.button {
+    display: flex;
+    padding: 8px;
+    background-color: var(--primary);
+    color: var(--text);
+    border: 0px var(--primary);
+    border-radius: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    background: var(--primary);
+    background: #1976d2;
+}
+
 .tooltip {
     display: none;
     position: absolute;
@@ -282,19 +306,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
     margin-right: 20px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .controls {
-        flex-direction: column;
-    }
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
 
-    .control-group {
-        max-width: 100%;
-    }
-
-    h1 {
-        font-size: 2em;
-    }
+h1 {
+    font-size: 2em;
 }
 
 input[type="checkbox"],

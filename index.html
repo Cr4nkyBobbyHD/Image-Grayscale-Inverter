@@ -7,6 +7,12 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Advanced Image Grayscale-Inverter</title>
         <link rel="stylesheet" href="css/styles.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <h1>Advanced Image Grayscale-Inverter</h1>
@@ -256,28 +262,32 @@
                     </span>
                 </label>
             </div>
-        </div>
 
-        <!-- PROFILES -->
-        <div class="control-group">
-            <h2>Profiles</h2>
-            <label>
-                Profilname:
-                <input
-                    type="text"
-                    id="profileNameInput"
-                    placeholder="z.B. StandardProfil"
-                />
-            </label>
-            <button id="saveProfileBtn">Profil speichern</button>
-            <button id="loadProfileBtn">Profil laden</button>
+            <!-- PROFILES -->
+            <div class="control-group">
+                <h2>Profiles</h2>
+                <label>
+                    Profilname:
+                    <input
+                        type="text"
+                        id="profileNameInput"
+                        placeholder="z.B. StandardProfil"
+                    />
+                </label>
+                <div class="buttons">
+                <button class="button" id="saveProfileBtn">
+                    Profil speichern
+                </button>
+                <button class="button" id="loadProfileBtn">Profil laden</button>
+                </div>
 
-            <label>
-                Verfügbare Profile:
-                <select id="profileSelect">
-                    <option value="">-- bitte wählen --</option>
-                </select>
-            </label>
+                <label>
+                    Verfügbare Profile:
+                    <select id="profileSelect">
+                        <option value="">-- bitte wählen --</option>
+                    </select>
+                </label>
+            </div>
         </div>
 
         <div class="loading-text" id="loadingText" style="display: none">
