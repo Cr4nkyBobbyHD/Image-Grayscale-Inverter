@@ -1,13 +1,13 @@
+<!-- index.html -->
+ 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Advanced Image Grayscale-Inverter</title>
     <link rel="stylesheet" href="css/styles.css" />
 </head>
-
 <body>
     <h1>Advanced Image Grayscale-Inverter</h1>
 
@@ -18,6 +18,7 @@
     </div>
 
     <div class="controls">
+        <!-- GRAYSCALE TOLERANCE -->
         <div class="control-group">
             <h2>Grayscale Tolerance</h2>
             <label>
@@ -32,6 +33,7 @@
             </label>
         </div>
 
+        <!-- THRESHOLD MODE -->
         <div class="control-group">
             <h2>Threshold Mode</h2>
             <label>
@@ -70,6 +72,7 @@
         </div>
 
 
+        <!-- PRE-PROCESSING -->
         <div class="control-group">
             <h2>Pre-Processing</h2>
             <label>
@@ -81,6 +84,7 @@
                     </span>
                 </span>
             </label>
+            <br />
             <label>
                 <input type="checkbox" id="applyBlur" />
                 Apply a Light Blur
@@ -90,6 +94,12 @@
                     </span>
                 </span>
             </label>
+            <br />
+            <label>
+                Blur Radius: <span id="blurRadiusValue">1</span>
+                <input type="range" id="blurRadiusRange" min="0" max="10" value="1" />
+            </label>
+            <br />
             <label>
                 Brightness: <span id="brightnessValue">0</span>
                 <span class="info-button">?
@@ -128,6 +138,7 @@
             </label>
         </div>
 
+        <!-- TRANSPARENCY -->
         <div class="control-group">
             <h2>Transparency</h2>
             <label>
@@ -159,6 +170,7 @@
             </label>
         </div>
 
+        <!-- LIVE PREVIEW -->
         <div class="control-group">
             <h2>Live Preview</h2>
             <label>
@@ -173,6 +185,25 @@
         </div>
     </div>
 
+    <!-- PROFILES -->
+    <div class="control-group">
+        <h2>Profiles</h2>
+        <label>
+            Profilname:
+            <input type="text" id="profileNameInput" placeholder="z.B. StandardProfil" />
+        </label>
+        <button id="saveProfileBtn">Profil speichern</button>
+        <button id="loadProfileBtn">Profil laden</button>
+
+        <label>
+            Verfügbare Profile:
+            <select id="profileSelect">
+                <option value="">-- bitte wählen --</option>
+            </select>
+        </label>
+    </div>
+
+
     <div class="loading-text" id="loadingText" style="display:none;">
         Processing images, please wait...
     </div>
@@ -180,11 +211,11 @@
     <div id="imagesContainer"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- Alle Module in separaten Skripts laden -->
     <script type="module" src="js/core.js"></script>
     <script type="module" src="js/filters.js"></script>
     <script type="module" src="js/ui.js"></script>
     <script type="module" src="js/download.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
-
 </html>

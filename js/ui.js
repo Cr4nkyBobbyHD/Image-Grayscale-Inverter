@@ -1,9 +1,16 @@
 // ui.js
-// Handles attaching event listeners, updating UI elements, etc.
+import { processAllImages } from './core.js';
+import {
+    convertImageToGrayscale,
+    applyBoxBlur,
+    adjustBrightnessContrast,
+    applyGammaCorrection,
+    applySharpen
+} from './filters.js';
 
-import {processAllImages} from './core.js';
-import {convertImageToGrayscale, applyBoxBlur, adjustBrightnessContrast, applyGammaCorrection, applySharpen} from './filters.js';
-
+// ---------------------------------
+// DOM-Elemente selektieren
+// ---------------------------------
 const fileInput = document.getElementById('fileInput');
 const batchDownloadBtn = document.getElementById('batchDownloadBtn');
 const applyChangesBtn = document.getElementById('applyChangesBtn');
@@ -17,6 +24,9 @@ const thresholdRange = document.getElementById('thresholdRange');
 const thresholdValue = document.getElementById('thresholdValue');
 const convertToGray = document.getElementById('convertToGray');
 const applyBlurCheck = document.getElementById('applyBlur');
+const blurRadiusRange = document.getElementById('blurRadiusRange');
+const blurRadiusValue = document.getElementById('blurRadiusValue');
+
 const makeTransparent = document.getElementById('makeTransparent');
 const adaptiveThresholdSelect = document.getElementById('adaptiveThresholdSelect');
 const thresholdContainer = document.getElementById('thresholdContainer');
@@ -30,14 +40,27 @@ const gammaValue = document.getElementById('gammaValue');
 const applySharpenCheck = document.getElementById('applySharpen');
 const livePreview = document.getElementById('livePreview');
 
+// Profile-spezifische Felder
+const profileNameInput = document.getElementById('profileNameInput');
+const saveProfileBtn = document.getElementById('saveProfileBtn');
+const loadProfileBtn = document.getElementById('loadProfileBtn');
+const profileSelect = document.getElementById('profileSelect');
+
 let originalImages = [];
 
+// ---------------------------------
+// Event-Listener für die Regler etc.
+// ---------------------------------
 toleranceRange.addEventListener('input', () => {
     toleranceValue.textContent = toleranceRange.value;
     triggerLiveUpdate();
 });
 thresholdRange.addEventListener('input', () => {
     thresholdValue.textContent = thresholdRange.value;
+    triggerLiveUpdate();
+});
+blurRadiusRange.addEventListener('input', () => {
+    blurRadiusValue.textContent = blurRadiusRange.value;
     triggerLiveUpdate();
 });
 brightnessRange.addEventListener('input', () => {
@@ -72,11 +95,13 @@ livePreview.addEventListener('change', () => {
         applyChangesBtn.style.display = 'inline-block';
     }
 });
-
 document.querySelectorAll('input[name="transColor"]').forEach(radio => {
     radio.addEventListener('change', triggerLiveUpdate);
 });
 
+// ---------------------------------
+// Datei-Upload
+// ---------------------------------
 fileInput.addEventListener('change', () => {
     const files = fileInput.files;
     if (!files || files.length === 0) return;
@@ -104,6 +129,9 @@ applyChangesBtn.addEventListener('click', () => {
     reprocessImages();
 });
 
+// ---------------------------------
+// Live-Preview-Logik
+// ---------------------------------
 let livePreviewTimeout = null;
 function triggerLiveUpdate() {
     if (livePreview.checked) {
@@ -116,14 +144,19 @@ function triggerLiveUpdate() {
     }
 }
 
+// ---------------------------------
+// Haupt-Funktion: Neu verarbeiten
+// ---------------------------------
 export function reprocessImages() {
     if (originalImages.length === 0) return;
+
     const options = {
         tol: parseInt(toleranceRange.value, 10),
         thresh: parseInt(thresholdRange.value, 10),
         useThreshold: thresholdMode.checked,
         doGray: convertToGray.checked,
         doBlur: applyBlurCheck.checked,
+        blurRadius: parseInt(blurRadiusRange.value, 10),
         doTransparent: makeTransparent.checked,
         transparencyColor: document.querySelector('input[name="transColor"]:checked').value,
         brightness: parseInt(brightnessRange.value, 10),
@@ -136,6 +169,9 @@ export function reprocessImages() {
     processAllImages(originalImages, options, updateUI);
 }
 
+// ---------------------------------
+// updateUI: Callback von processAllImages
+// ---------------------------------
 function updateUI(state, payload) {
     if (state === 'loading') {
         loadingText.style.display = payload ? 'block' : 'none';
@@ -157,7 +193,7 @@ function updateUI(state, payload) {
                 link.click();
             });
 
-            // Add "Copy to Clipboard" button
+            // Copy-to-Clipboard
             const copyToClipboardBtn = document.createElement('button');
             copyToClipboardBtn.className = 'download-btn';
             copyToClipboardBtn.textContent = 'Copy to Clipboard';
@@ -186,12 +222,14 @@ function updateUI(state, payload) {
         batchDownloadBtn.style.display = 'inline-block';
         applyChangesBtn.style.display = livePreview.checked ? 'none' : 'inline-block';
     } else if (state === 'preprocess') {
-        const {ctx, width, height, options} = payload;
+        const { ctx, width, height, options } = payload;
+
+        // Vorverarbeitung
         if (options.doGray) {
             convertImageToGrayscale(ctx, width, height);
         }
-        if (options.doBlur) {
-            applyBoxBlur(ctx, width, height, 1);
+        if (options.doBlur && options.blurRadius > 0) {
+            applyBoxBlur(ctx, width, height, options.blurRadius);
         }
         if (options.brightness !== 0 || options.contrast !== 0) {
             adjustBrightnessContrast(ctx, width, height, options.brightness, options.contrast);
@@ -205,44 +243,58 @@ function updateUI(state, payload) {
     }
 }
 
+// ---------------------------------
+// Schwellenwert-UI anpassen
+// ---------------------------------
 function updateThresholdUI() {
     const method = adaptiveThresholdSelect.value;
     const shouldShow = (method === 'custom' && thresholdMode.checked);
-
-    if (shouldShow) {
-        thresholdContainer.style.display = 'block';
-    } else {
-        thresholdContainer.style.display = 'none';
-    }
+    thresholdContainer.style.display = shouldShow ? 'block' : 'none';
 }
 
+// ---------------------------------
+// Reset-Logik
+// ---------------------------------
 function resetUIToDefaults() {
-    toleranceRange.value = 5; toleranceValue.textContent = '5';
+    toleranceRange.value = 5;
+    toleranceValue.textContent = '5';
+
     thresholdMode.checked = false;
-    thresholdRange.value = 128; thresholdValue.textContent = '128';
+    thresholdRange.value = 128;
+    thresholdValue.textContent = '128';
     adaptiveThresholdSelect.value = 'custom';
+
     convertToGray.checked = false;
     applyBlurCheck.checked = false;
-    brightnessRange.value = 0; brightnessValue.textContent = '0';
-    contrastRange.value = 0; contrastValue.textContent = '0';
-    gammaRange.value = 1.0; gammaValue.textContent = '1.0';
+    blurRadiusRange.value = 1;
+    blurRadiusValue.textContent = '1';
+
+    brightnessRange.value = 0;
+    brightnessValue.textContent = '0';
+    contrastRange.value = 0;
+    contrastValue.textContent = '0';
+    gammaRange.value = 1.0;
+    gammaValue.textContent = '1.0';
     applySharpenCheck.checked = false;
     makeTransparent.checked = false;
+
     document.querySelector('input[name="transColor"][value="black"]').checked = true;
     livePreview.checked = false;
 
     updateThresholdUI();
 }
 
-window.addEventListener('load', resetUIToDefaults);
-
+// ---------------------------------
+// Zugriff für andere Module
+// ---------------------------------
 export function getImages() {
     return originalImages;
 }
 
-// Add paste event listener for Ctrl+V
+// ---------------------------------
+// Paste-Event (Strg+V) fürs Clipboard
+// ---------------------------------
 document.addEventListener('paste', (e) => {
-    // Check if there's an image in the clipboard
     const items = e.clipboardData.items;
     let imageFound = false;
     for (let i = 0; i < items.length; i++) {
@@ -252,7 +304,6 @@ document.addEventListener('paste', (e) => {
             const file = item.getAsFile();
             const reader = new FileReader();
             reader.onload = (event) => {
-                // Replace current images with this single pasted image
                 originalImages = [{
                     dataURL: event.target.result,
                     filename: 'pasted_image.png'
@@ -266,9 +317,146 @@ document.addEventListener('paste', (e) => {
             break;
         }
     }
-
     if (!imageFound) {
         console.log('No image found in clipboard.');
-        // You could alert the user, but silently ignoring is also fine.
+    }
+});
+
+// ---------------------------------
+// Profile speichern / laden
+// ---------------------------------
+saveProfileBtn.addEventListener('click', () => {
+    const profileName = profileNameInput.value.trim();
+    if (!profileName) {
+        alert('Bitte einen Profilnamen eingeben.');
+        return;
+    }
+    saveProfile(profileName);
+    updateProfileSelect();
+});
+
+loadProfileBtn.addEventListener('click', () => {
+    const selected = profileSelect.value;
+    if (!selected) {
+        alert('Bitte ein Profil aus der Liste auswählen.');
+        return;
+    }
+    loadProfile(selected);
+});
+
+// Profile-Speicher-Funktionen
+function saveProfile(profileName) {
+    const profileData = getCurrentProfileSettings();
+    const storedString = localStorage.getItem('imageProfiles');
+    let allProfiles = {};
+    if (storedString) {
+        allProfiles = JSON.parse(storedString);
+    }
+    allProfiles[profileName] = profileData;
+    localStorage.setItem('imageProfiles', JSON.stringify(allProfiles));
+    alert(`Profil "${profileName}" wurde gespeichert.`);
+}
+
+function loadProfile(profileName) {
+    const storedString = localStorage.getItem('imageProfiles');
+    if (!storedString) {
+        alert('Keine Profile gefunden.');
+        return;
+    }
+    const allProfiles = JSON.parse(storedString);
+    const profileData = allProfiles[profileName];
+    if (!profileData) {
+        alert(`Profil "${profileName}" nicht vorhanden.`);
+        return;
+    }
+    applyProfileSettings(profileData);
+    reprocessImages();
+    alert(`Profil "${profileName}" wurde geladen.`);
+}
+
+function getCurrentProfileSettings() {
+    return {
+        tol: parseInt(toleranceRange.value, 10),
+        thresh: parseInt(thresholdRange.value, 10),
+        useThreshold: thresholdMode.checked,
+        doGray: convertToGray.checked,
+        doBlur: applyBlurCheck.checked,
+        blurRadius: parseInt(blurRadiusRange.value, 10),
+        doTransparent: makeTransparent.checked,
+        transparencyColor: document.querySelector('input[name="transColor"]:checked').value,
+        brightness: parseInt(brightnessRange.value, 10),
+        contrast: parseInt(contrastRange.value, 10),
+        gamma: parseFloat(gammaRange.value),
+        applySharpen: applySharpenCheck.checked,
+        adaptiveMethod: adaptiveThresholdSelect.value,
+        livePreview: livePreview.checked
+    };
+}
+
+function applyProfileSettings(profileData) {
+    toleranceRange.value = profileData.tol;
+    thresholdRange.value = profileData.thresh;
+    thresholdMode.checked = profileData.useThreshold;
+    convertToGray.checked = profileData.doGray;
+    applyBlurCheck.checked = profileData.doBlur;
+    blurRadiusRange.value = profileData.blurRadius;
+    makeTransparent.checked = profileData.doTransparent;
+
+    document.querySelector(`input[name="transColor"][value="${profileData.transparencyColor}"]`).checked = true;
+
+    brightnessRange.value = profileData.brightness;
+    contrastRange.value = profileData.contrast;
+    gammaRange.value = profileData.gamma;
+    applySharpenCheck.checked = profileData.applySharpen;
+    adaptiveThresholdSelect.value = profileData.adaptiveMethod;
+    livePreview.checked = profileData.livePreview;
+
+    // UI-Textwerte aktualisieren
+    thresholdValue.textContent = thresholdRange.value;
+    toleranceValue.textContent = toleranceRange.value;
+    blurRadiusValue.textContent = blurRadiusRange.value;
+    brightnessValue.textContent = brightnessRange.value;
+    contrastValue.textContent = contrastRange.value;
+    gammaValue.textContent = gammaRange.value;
+
+    // Apply-Button-Logik
+    applyChangesBtn.style.display = livePreview.checked ? 'none' : 'inline-block';
+    updateThresholdUI();
+}
+
+// Dropdown aktualisieren
+function updateProfileSelect() {
+    profileSelect.innerHTML = '<option value="">-- bitte wählen --</option>';
+    const storedString = localStorage.getItem('imageProfiles');
+    if (!storedString) return;
+    const allProfiles = JSON.parse(storedString);
+    Object.keys(allProfiles).forEach(profileName => {
+        const option = document.createElement('option');
+        option.value = profileName;
+        option.textContent = profileName;
+        profileSelect.appendChild(option);
+    });
+}
+
+// ---------------------------------
+// Beim Laden: UI zurücksetzen, Profile-Dropdown updaten,
+// LivePreview-Einstellung laden
+// ---------------------------------
+window.addEventListener('load', () => {
+    updateProfileSelect();
+    resetUIToDefaults();
+
+    const storedPreviewSetting = localStorage.getItem('livePreviewEnabled');
+    if (storedPreviewSetting !== null) {
+        livePreview.checked = (storedPreviewSetting === 'true');
+        applyChangesBtn.style.display = livePreview.checked ? 'none' : 'inline-block';
+    }
+});
+
+livePreview.addEventListener('change', () => {
+    localStorage.setItem('livePreviewEnabled', livePreview.checked);
+    applyChangesBtn.style.display = livePreview.checked ? 'none' : 'inline-block';
+    if (livePreview.checked && originalImages.length > 0) {
+        reprocessImages();
     }
 });
