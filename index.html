@@ -29,7 +29,16 @@
         </div>
 
         <!-- LIVE PREVIEW -->
-        <input type="checkbox" id="livePreview" style="display: none;" />
+        <div class="live-preview flex-gap">
+            <input type="checkbox" id="livePreview" />
+            <label class="checkbox-radio-label" for="livePreview">
+                Enable Live Preview
+            </label>
+            <span class="info-button"
+                title="Automatically reprocess images as you adjust settings. Might be laggy on large images.">
+                ?
+            </span>
+        </div>
 
         <div id="imagesContainer" class="image-container"></div>
     </div>

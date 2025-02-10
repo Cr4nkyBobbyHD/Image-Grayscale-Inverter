@@ -181,17 +181,7 @@ function updateUI(state, payload) {
     loadingText.style.display = payload ? "block" : "none";
   } else if (state === "result") {
     const results = payload;
-    imagesContainer.innerHTML = `<div class="live-preview flex-gap">
-            <input type="checkbox" id="livePreview" />
-            <label class="checkbox-radio-label" for="livePreview">
-                Enable Live Preview
-            </label>
-            <span class="info-button"
-                title="Automatically reprocess images as you adjust settings. Might be laggy on large images.">
-                ?
-            </span>
-        </div>
-    `;
+    imagesContainer.innerHTML = ``;
     results.forEach((res) => {
       const block = document.createElement("div");
       block.className = "image-block";
